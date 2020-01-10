@@ -14,7 +14,7 @@ app.config.from_object(Configuracion_desarrollo)
 def before_request():
     if 'username' not in session and request.endpoint in ["RegistroAlumno"]:
         return redirect(url_for('login'))
-    if 'username' in session and request.endpoint in ['registro']:
+    if 'username' in session and request.endpoint in ['registro', 'login']:
         return redirect(url_for("inicio"))
 
 
@@ -50,6 +50,10 @@ def login():
 
 @app.route('/salir')
 def salir():
+    """
+    esta ruta es para eliminar la cookie session
+
+    """
     if 'username' in session:
         session.pop('username')
     return redirect(url_for("login"))
@@ -62,7 +66,15 @@ def index():
 
 @app.route("/registro", methods=['GET', 'POST'])
 def registro():
+    """
+    esta ruta da el formulario de registro.
+
+    """
+    # objeto formulario para pasarlo a jinja2
     hola = forms.Formulario(request.form)
+    # si la respuesta del formulario es de tipo post y si no tiene errores
+    # entonces crea una instancia Users y rellena para agregarlo a la base
+    # la tabla Users
     if request.method == 'POST' and hola.validate():
         user = User(hola.nombre.data, hola.cedula.data,
                     hola.username.data, hola.email.data,
@@ -79,12 +91,32 @@ def RegistroAlumno():
 
 @app.route("/Representantes")
 def Representantes():
+    """
+    esta ruta es para guardar los datos la repesentantes de manera automatica
+    si todo esta bien no tienen que percatarse de lo que esta pasando :V
+    """
+    # objeto consulta que filtra si el usuario esta en la tabla Representantes
+    representante = Representante.query.filter_by(
+        id_usuario=session['user_id']).first()
+
+    # objeto consulta que obtiene el id del usuario segun el id que tiene
+    # en la session
     user = User.query.get(session['user_id'])
-    r = Representante(Users=user)
-    db.session.add(r)
-    db.session.commit()
+
+    if representante is None:
+        print(representante)
+        print(user)
+        r = Representante(Users=user)
+        db.session.add(r)
+        db.session.commit()
+        return redirect(url_for('inicio'))
+
+    elif representante.id_usuario == user.id:
+        return redirect(url_for('inicio'))
+
+    print(representante)
     print(user)
-    return "en desarrollo"#redirect(url_for('inicio'))
+    return redirect(url_for('inicio'))
 
 
 @app.route("/eliminar/<int:id>")

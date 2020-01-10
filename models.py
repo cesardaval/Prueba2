@@ -24,19 +24,21 @@ class User(db.Model):
         self.email = email
         self.password = password
 
-    def comparar(self,password):
+    def comparar(self, password):
         if self.password == password:
             return True
         return False
 
+
 class Representante(db.Model):
-    __tablename__ ='Representantes'
+    __tablename__ = 'Representantes'
     id = db.Column(db.Integer, primary_key=True)
     id_usuario = db.Column(db.Integer, db.ForeignKey(
         'Users.id'), nullable=False, unique=True)
-    
+
     preinscripciones = db.relationship(
         'Preinscripcion', backref='Representantes', lazy=True)
+
 
 class Preinscripcion(db.Model):
     __tablename__ = "Preinscripciones"
@@ -50,4 +52,3 @@ class Preinscripcion(db.Model):
 
     id_Representante = db.Column(db.Integer, db.ForeignKey(
         'Representantes.id'), nullable=False)
-
