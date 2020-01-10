@@ -1,0 +1,59 @@
+{%extends 'base.html'%}
+
+{% block content%}
+	{% from "_macros.html" import imprime_formulario %}
+	<main class="content">
+		<div class="row">
+			<div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+				<form  method="POST">
+					<div class=" control-group " >
+					<div class="form-group col-xs-12 floating-label-form-group controls">
+						{%for i in range(largo)%}
+
+						
+						{{imprime_formulario(forms.username,class='form-control',value=datos[i].username)}}
+						<span> <a href="/edita/{{datos[i].id}}" class="btn btn-success">editar</a> 
+
+							<a href="/borrar/{{datos[i].id}}" class="btn btn-danger">borrar</a>
+
+						</span>
+						{%endfor%}
+						<p class="help-block text-danger"></p>
+						
+						
+						
+					</div>
+				</div>
+
+				<form method="GET">
+					<div class=" control-group " >
+					<div class="form-group col-xs-12 floating-label-form-group controls">
+						{%for i in range(largo)%}
+
+						
+						{{imprime_formulario(forms.email, class='form-control',value=datos[i].email)}}
+
+						{%endfor%}
+
+						<p class="help-block text-danger"></p>
+						
+						
+						
+					</div>
+				</div>
+
+				<br>
+
+					<br>
+				<div id="success"></div>
+				<div class="row">
+					<div class="form-group col-xs-12">
+						<button type="submit" class="btn btn-success" >Enviar</button>
+					</div>
+				</div>
+				</form>
+			</div>
+		</div>
+	</main>
+
+{%endblock%}

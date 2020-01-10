@@ -1,0 +1,13 @@
+{%macro imprime_formulario(campo)%}
+	<td> {{campo.label}}
+		
+	<dd> {{campo(**kwargs)| safe}}
+	
+	{%if errors%}
+		{%for error in errors%}
+			<li>
+				{{error}}
+			</li>
+		{%endfor%}
+	{%endif%}
+{%endmacro%}
