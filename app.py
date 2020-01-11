@@ -4,7 +4,7 @@ from flask import redirect, url_for
 from flask import flash
 from config import Configuracion_desarrollo
 from models import User, db, Representante, Preinscripcion
-
+from tables import Tabla
 import forms
 app = Flask(__name__)
 app.config.from_object(Configuracion_desarrollo)
@@ -86,6 +86,7 @@ def registro():
 
 @app.route("/RegistroAlumno")
 def RegistroAlumno():
+    
     return "estoy en desarrollo"
 
 
@@ -122,7 +123,28 @@ def Representantes():
 @app.route("/eliminar/<int:id>")
 def eliminar(id):
     pass
+@app.route('/tabla')
+def tabla():
+    """
+    para hacer los join se tiene que utilizar el objeto instancia de sqlalchemy
+    porque para el join tienes que hacerlo directamente desde la sesion, agregando las tablas
+    que quieres consultar en el espacio de query seguido de la instruccion join y como parametro
+    la clase con la que queremos cruzar la consulta, el ultimo paso es para agregar tablas 
+    especificas para facilitar la generacion de tablas.
 
+    """
+    repre = db.session.query(User,Representante).join(User).add_columns(User.username,User.email
+        , Representante.id)
+    
+    tablita = Tabla(repre)
+    return render_template("tabla.html",tabla=tablita)
+
+
+@app.route('/edita/<id>', methods=["GET", "POST"])
+def edita(id):
+    id = id
+
+    return "tu id es: {}".format(id)
 
 if __name__ == '__main__':
     db.init_app(app)
