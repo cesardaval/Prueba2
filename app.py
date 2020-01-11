@@ -84,10 +84,19 @@ def registro():
     return render_template('crea_usuarios.html', forms=hola)
 
 
-@app.route("/RegistroAlumno")
+@app.route("/RegistroAlumno",methods=['GET','POST'])
 def RegistroAlumno():
-    
-    return "estoy en desarrollo"
+    registro = forms.RegistroAlumno(request.form)
+    id_representante = Representante.query.get(session['user_id'])
+    if request.method == 'POST' and registro.validate():
+        preInscrito = Preinscripcion(nombre= registro.nombre.data,
+                                    apellido=registro.apellido.data,
+                                    escuela= registro.escuela.data,
+                                    edad = registro.edad.data, 
+                                    Representantes = id_representante)
+        db.session.add(preInscrito)
+        db.session.commit()
+    return render_template("registroAlumnos.html", forms = registro)
 
 
 @app.route("/Representantes")
