@@ -4,7 +4,7 @@ from flask import redirect, url_for
 from flask import flash
 from config import Configuracion_desarrollo
 from models import User, db, Representante, Preinscripcion
-from tables import Tabla
+from tables import Tabla,alumnos
 import forms
 app = Flask(__name__)
 app.config.from_object(Configuracion_desarrollo)
@@ -22,8 +22,8 @@ def before_request():
 def inicio():
 
     if 'username' in session:
-        print(session)
-        return "estas logeado"
+        hola = session['user_id']
+        return "estas logeado {}".format(hola)
     return "inicio"
 
 
@@ -84,19 +84,19 @@ def registro():
     return render_template('crea_usuarios.html', forms=hola)
 
 
-@app.route("/RegistroAlumno",methods=['GET','POST'])
+@app.route("/RegistroAlumno", methods=['GET', 'POST'])
 def RegistroAlumno():
     registro = forms.RegistroAlumno(request.form)
     id_representante = Representante.query.get(session['user_id'])
     if request.method == 'POST' and registro.validate():
-        preInscrito = Preinscripcion(nombre= registro.nombre.data,
-                                    apellido=registro.apellido.data,
-                                    escuela= registro.escuela.data,
-                                    edad = registro.edad.data, 
-                                    Representantes = id_representante)
+        preInscrito = Preinscripcion(nombre=registro.nombre.data,
+                                     apellido=registro.apellido.data,
+                                     escuela=registro.escuela.data,
+                                     edad=registro.edad.data,
+                                     Representantes=id_representante)
         db.session.add(preInscrito)
         db.session.commit()
-    return render_template("registroAlumnos.html", forms = registro)
+    return render_template("registroAlumnos.html", forms=registro)
 
 
 @app.route("/Representantes")
@@ -132,6 +132,8 @@ def Representantes():
 @app.route("/eliminar/<int:id>")
 def eliminar(id):
     pass
+
+
 @app.route('/tabla')
 def tabla():
     """
@@ -142,11 +144,47 @@ def tabla():
     especificas para facilitar la generacion de tablas.
 
     """
-    repre = db.session.query(User,Representante).join(User).add_columns(User.username,User.email
-        , Representante.id)
-    
+    repre = db.session.query(User, Representante).join(
+        User).add_columns(User.username, User.email, Representante.id)
+
     tablita = Tabla(repre)
-    return render_template("tabla.html",tabla=tablita)
+    return render_template("tabla.html", tabla=tablita)
+
+@app.route('/tabla2')
+def tabla2():
+    """
+    para hacer los join se tiene que utilizar el objeto instancia de sqlalchemy
+    porque para el join tienes que hacerlo directamente desde la sesion, agregando las tablas
+    que quieres consultar en el espacio de query seguido de la instruccion join y como parametro
+    la clase con la que queremos cruzar la consulta, el ultimo paso es para agregar tablas 
+    especificas para facilitar la generacion de tablas.
+    
+    nota personal:
+    cuando hacer una consulta sin indicarle first() a la consulta devuelve
+    una lista animal y la tienes que iterar e.e
+    cuando le colocas firt() te devuelve una tupla que no tiene necesidad 
+    de recorerla en jinja solo basta con variable.atriburo
+
+    lee sobre collections
+    """
+
+    repre2 = db.session.query(User, Representante).join(
+        User).filter_by(id=session['user_id']).add_columns(User.nombre, User.cedula, Representante.id,
+        Representante.id_usuario).first()
+
+    repre = db.session.query(Representante, Preinscripcion).join(
+        Representante,User).filter_by(id=session['user_id']).add_columns(Preinscripcion.nombre,Preinscripcion.apellido
+        ,Preinscripcion.escuela,Preinscripcion.id_Representante,Preinscripcion.edad)
+    
+    repre3 = db.session.query(Representante, Preinscripcion).join(
+        Representante,User).filter_by(id=session['user_id']).add_columns(User.nombre, Preinscripcion.nombre,Preinscripcion.apellido
+        ,Preinscripcion.escuela,Preinscripcion.id_Representante,Preinscripcion.edad).first()
+    
+
+    print(type(repre3))
+    tablita = alumnos(repre)
+    return render_template("tabla.html", tabla=tablita,datos=repre2,datos2=repre3 )
+
 
 
 @app.route('/edita/<id>', methods=["GET", "POST"])
@@ -154,6 +192,7 @@ def edita(id):
     id = id
 
     return "tu id es: {}".format(id)
+
 
 if __name__ == '__main__':
     db.init_app(app)
